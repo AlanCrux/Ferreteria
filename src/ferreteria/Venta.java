@@ -11,12 +11,26 @@ public class Venta implements Serializable{
   String clave; 
   double iva; 
   double total; 
+  double subtotal; 
   ArrayList<Producto> detalle;
   
   public Venta(){
     detalle = new ArrayList<>();
   }
 
+  @Override
+  public String toString() {
+    return "Clave: "+clave+" | $: "+total;
+  }
+
+  public double getSubtotal() {
+    return subtotal;
+  }
+
+  public void setSubtotal(double subtotal) {
+    this.subtotal = subtotal;
+  }
+  
   public String getClave() {
     return clave;
   }
@@ -55,6 +69,7 @@ public class Venta implements Serializable{
       System.out.println("# "+detalle.get(i).getClave()+" "+detalle.get(i).getNombre()+" "+detalle.get(i).getExistencia()+
           " "+subtotal);
     }
+    System.out.println("# Subtotal: "+this.subtotal);
     System.out.println("# IVA: "+iva);
     System.out.println("# Total: "+total);
     System.out.println("#######################################");

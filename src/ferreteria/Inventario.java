@@ -1,12 +1,15 @@
 package ferreteria;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.GregorianCalendar;
 /**
  *
  * @author Alan Yoset García C
  */
 public class Inventario {
+  Calendar fecha = new GregorianCalendar();
   Archivo archivo = new Archivo("Inventario.txt"); //Objeto de clase archivo, permite guardar y obtener el arraylist serializado
   ArrayList<Producto> lista; //Para guardar la arraylist obtenida del archivo
   int clave; //permite asignar una clave a cada producto 
@@ -14,6 +17,9 @@ public class Inventario {
   Archivo archivoVentas = new Archivo("Ventas.txt");
   ArrayList<Venta> listaVentas; 
   int claveVenta; 
+  
+  Archivo archivoDetalles = new Archivo("DetalleVenta.txt");
+  ArrayList<DetalleVenta> listaDetalles; 
   
   Teclado teclado = new Teclado(); //permite la lectura de entradas por teclado
   
@@ -80,6 +86,7 @@ public class Inventario {
   }
   
   public void consultarClave(){
+    revalidarLectura();
     if (lista.size() > 0) {
       boolean encontrado = false; 
 
@@ -195,6 +202,7 @@ public class Inventario {
       System.out.printf(lista.get(i).toString());
       System.out.println("");
     }
+    
   }
   
   public void mostrarClave(){
@@ -251,16 +259,6 @@ public class Inventario {
     }
   }
   
-  public Producto devolverProducto(String clave) {
-    int pos = 0; 
-    for (int i = 0; i < lista.size(); i++) {
-      if (lista.get(i).getClave().equals(clave)) {
-        pos = i; 
-      }
-    }
-    return lista.get(pos);
-  }
-  
   public int devolverPosicion(String clave){
     int pos = 0; 
     for (int i = 0; i < lista.size(); i++) {
@@ -273,6 +271,7 @@ public class Inventario {
   
   public void venta(){
     Venta venta = new Venta();
+    DetalleVenta detalle = new DetalleVenta();
     Producto productoTemp; 
     int salir = 0; 
     String clave;
@@ -284,22 +283,30 @@ public class Inventario {
       precioVenta = 0; 
       System.out.printf("Ingresa clave de producto: ");
       clave = teclado.leerCadena();
-
       if (verificarExistencia(clave)) {
-        productoTemp = devolverProducto(clave);
+        productoTemp = (Producto) lista.get(devolverPosicion(clave));
+        detalle.setNombreProducto(productoTemp.getNombre());
         System.out.println("Ingresa cantidad: ");
         cantidad = teclado.leerEnteros();
         if (cantidad <= productoTemp.getExistencia()) {
+          detalle.setCantidadProducto(cantidad);
           lista.get(devolverPosicion(clave)).setExistencia(lista.get(devolverPosicion(clave)).getExistencia() - cantidad);
-          archivo.salida(lista);
+          archivo.salida(lista); //ESCRIBIMOS EN EL ARCHIVO LA LISTA CON LA NUEVA CANTIDAD
           productoTemp.setExistencia(cantidad);
           precioVenta = productoTemp.getPrecioCompra(); 
           precioVenta += (precioVenta * .5);
+          detalle.setGanancia(precioVenta - productoTemp.getPrecioCompra());
           productoTemp.setPrecioCompra(precioVenta);
           ivaAcumulado += (precioVenta * .16);
           precioVenta = precioVenta * cantidad; //Reciclando esta variable
           totalAcumulado += precioVenta; 
           System.out.println("Subtotal de este articulo: " + precioVenta);
+          detalle.setSubtotal(precioVenta);
+          detalle.setAnio(fecha.get(Calendar.YEAR));
+          detalle.setMes(fecha.get(Calendar.MONTH));
+          detalle.setDia(fecha.get(Calendar.DAY_OF_MONTH));
+          listaDetalles.add(detalle);
+          archivoDetalles.salida(listaDetalles);
           venta.addProducto(productoTemp);
         } else {
           System.out.println("\tExistencias insuficientes");
@@ -311,14 +318,17 @@ public class Inventario {
       salir = teclado.leerEnteros();
       revalidarLectura();
     } while(salir == 1);
+    
     venta.setClave("zVENTA"+claveVenta);
     venta.setIva(ivaAcumulado);
+    venta.setSubtotal(totalAcumulado);
     venta.setTotal(totalAcumulado+ivaAcumulado);
     venta.mostrarDetalle();
+    
     listaVentas.add(venta);
     archivoVentas.salida(listaVentas);
-    System.out.println("Venta realizada exitosamente \n Clave: " + venta.getClave());
     
+    System.out.println("Venta realizada exitosamente \n Clave: " + venta.getClave());
   }
   
    public void consultarVenta(){
@@ -355,5 +365,103 @@ public class Inventario {
     } else {
       listaVentas = new ArrayList<>();
     }
+    
+    if (archivoDetalles.existencia()) {
+      listaDetalles = archivoDetalles.entradaDetalles();
+    } else {
+      listaDetalles = new ArrayList<>();
+    }
+  }
+  
+  public void listarVentas(){
+    Collections.sort(listaVentas, new Comparator<Venta>() {
+      @Override
+      public int compare(Venta o1, Venta o2) {
+        return o1.getClave().compareTo(o2.getClave());
+      }
+    });
+    System.out.println("");
+    for (int i = 0; i < listaVentas.size(); i++) {
+      System.out.printf(listaVentas.get(i).toString());
+      System.out.println("");
+    }
+    
+  }
+  
+  public void listarDetallesVenta(){
+    revalidarLectura();
+    System.out.println("");
+    for (int i = 0; i < listaDetalles.size(); i++) {
+      System.out.printf(listaDetalles.get(i).toString());
+      System.out.println("");
+    }
+  }
+  
+  public void filtroVentasDia(){
+    revalidarLectura();
+    System.out.println("Dame la fecha que quieres consultar dd/mm/aaaa");
+    String consulta = teclado.leerCadena();
+    String fechas; 
+    System.out.println("");
+    boolean encontrado = false; 
+    for (int i = 0; i < listaDetalles.size(); i++) {
+      fechas = listaDetalles.get(i).getDia() + "/"+ listaDetalles.get(i).getMes() + "/" + listaDetalles.get(i).getAnio();
+      if (fechas.equals(consulta)) {
+        System.out.printf(listaDetalles.get(i).toString());
+        System.out.println("");
+        encontrado = true;
+      }
+    }
+    if (!encontrado) {
+      System.out.println("No se encontro registro de ventas en esa fecha");
+    }
+  }
+  
+  public void filtroVentasMes(){
+    revalidarLectura();
+    System.out.println("\t Filtro por mes ");
+    System.out.printf("Dame el numero del mes: ");
+    int mes = teclado.leerEnteros();
+    boolean encontrado = false; 
+    
+    for (int i = 0; i < listaDetalles.size(); i++) {
+      if (listaDetalles.get(i).getMes() == mes) {
+        System.out.printf(listaDetalles.get(i).toString());
+        System.out.println("");
+        encontrado = true;
+      }
+    }
+    if (!encontrado) {
+      System.out.println("No se encontro registro de ventas en ese mes");
+    }
+  }
+  
+  public void filtroVentasAnio(){
+    revalidarLectura();
+    System.out.println("\t Filtro anual ");
+    System.out.printf("Dame el numero del año: ");
+    int anio = teclado.leerEnteros();
+    boolean encontrado = false; 
+    
+    for (int i = 0; i < listaDetalles.size(); i++) {
+      if (listaDetalles.get(i).getAnio()== anio) {
+        System.out.printf(listaDetalles.get(i).toString());
+        System.out.println("");
+        encontrado = true;
+      }
+    }
+    if (!encontrado) {
+      System.out.println("No se encontro registro de ventas en ese año");
+    }
+  }
+  
+  public void gananciaGlobal(){
+    revalidarLectura();
+    double gananciaGlobal = 0; 
+    for (int i = 0; i < listaDetalles.size(); i++) {
+      gananciaGlobal += listaDetalles.get(i).getGanancia(); 
+    }
+    
+    System.out.println("La ganancia global a la fecha es: "+gananciaGlobal);
   }
 }

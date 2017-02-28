@@ -1,8 +1,8 @@
 package ferreteria;
 
 public class Ferreteria {
-
-  public static void main(String[] args) {
+  
+  public static void menu() {
     MensajesUsuario mu = new MensajesUsuario();
     Teclado teclado = new Teclado();
     int op;
@@ -22,11 +22,15 @@ public class Ferreteria {
           mu.menuVentas();
           op = mu.leerOpcion();
           mu.realizarOpcionVentas(op);
-        } while (op != 3);
+        } while (op != 9);
       } else {
         System.out.println("Saliendo ...");
-        break; 
+         System.exit(0);
       }
     }
+  }
+  
+  public static void main(String[] args) {
+    menu();
   }
 }

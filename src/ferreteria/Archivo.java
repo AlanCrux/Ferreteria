@@ -89,6 +89,24 @@ public class Archivo {
     return lista;
   }
   
+  public ArrayList entradaDetalles() {
+    ArrayList<DetalleVenta> lista = null;
+
+    try {
+      fileIn = new FileInputStream(archivo);
+      entrada = new ObjectInputStream(fileIn);
+      lista = (ArrayList<DetalleVenta>) entrada.readObject();
+      entrada.close();
+    } catch (FileNotFoundException ex) {
+      System.out.println("Archivo no encontrado");
+    } catch (IOException e) {
+      System.out.println("Creando el archivo");
+    } catch (ClassNotFoundException z) {
+      System.out.println("Error de clase");
+    }
+    return lista;
+  }
+  
   /**
    * Método que devuelve la bandera de existencia de algun produto dentro de la lista
    * @return 

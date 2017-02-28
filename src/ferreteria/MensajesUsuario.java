@@ -11,7 +11,7 @@ public class MensajesUsuario {
   public void menuInicial(){
     System.out.println("");
     System.out.println("\tFerreteria de la UV");
-    System.out.println("1) Gestionar inventario\n2) Gestionar ventas\nTeclea cualquier otro para salir ...");
+    System.out.println("1) Gestionar inventario\n2) Gestionar ventas\n3) Salir");
   }
 
   /**
@@ -27,7 +27,8 @@ public class MensajesUsuario {
   public void menuVentas(){
     System.out.println("");
     System.out.println("\tGestión de ventas");
-    System.out.println("1) Nueva venta\n2) Consultar venta\n3) Salir");
+    System.out.println("1) Nueva venta\n2) Consultar venta\n3) Listar notas de venta\n4) Listar detalle de ventas"
+        + "\n5) Filtrar ventas por dia\n6) Filtrar ventas por periodo\n7) Obtener ganancia global\n8) Salir");
   }
 
   /**
@@ -77,10 +78,10 @@ public class MensajesUsuario {
         seleccionador = teclado.leerEnteros();
         switch (seleccionador) {
           case 1:
-            crud.mostrarNombre();
+            crud.mostrarClave();
             break;
           case 2:
-            crud.mostrarClave();
+            crud.mostrarNombre();
             break;
           default:
             System.out.println("Opcion no válida");
@@ -91,7 +92,7 @@ public class MensajesUsuario {
         crud.activosTotales();
         break;
       case 7:
-        System.out.println("Gracias por participar");
+        Ferreteria.menu();
         break;
       default:
         System.out.println("No establecido");
@@ -108,7 +109,30 @@ public class MensajesUsuario {
         crud.consultarVenta();
         break;
       case 3:
-        System.out.println("Gracias por participar");
+        crud.listarVentas();
+        break;
+      case 4:
+        crud.listarDetallesVenta();
+        break;
+      case 5:
+        crud.filtroVentasDia();
+        break;
+      case 6:
+        System.out.println("Filtrar por:\n1) Mes\n2) Año");
+        int opcion = teclado.leerEnteros();
+        if (opcion == 1) {
+          crud.filtroVentasMes();
+        } else if (opcion == 2){
+          crud.filtroVentasAnio();
+        } else {
+          System.out.println("No valido");
+        }
+        break;
+      case 7:
+        crud.gananciaGlobal();
+        break;
+      case 8:
+        Ferreteria.menu();
         break;
       default:
         System.out.println("No establecido");
